@@ -1,0 +1,23 @@
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Local Database
+backend/anpr.db
+backend/anpr.db-journal
+
+# Uploaded Dynamic Scans
+backend/uploads/*.jpg
+backend/uploads/*.png
+!backend/uploads/.gitkeep
+
+# Environment & IDE
+.env
+.venv
+env/
+venv/
+.idea/
+.vscode/

@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+    --primary: #3b82f6;
+    --primary-glow: rgba(59, 130, 246, 0.35);
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.font-mono-plate {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.08em;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Glassmorphism Card */
+.glass-panel {
+    background: rgba(30, 41, 59, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-panel-glow {
+    background: rgba(30, 41, 59, 0.75);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Radar Scan Animation */
+@keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(1000%); }
+}
+
+.scanline-effect {
+    animation: scanline 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Smart Gate Barrier Indicator Animation */
+.barrier-arm {
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: left center;
+}
+
+.barrier-arm.open {
+    transform: rotate(-65deg);
+}

@@ -25,12 +25,22 @@ def _evaluate_access_and_log(db: Session, pipeline_res: dict, source: str) -> Re
     crop_url = pipeline_res.get("plate_crop_path")
     box = pipeline_res.get("bounding_box")
     proc_time = pipeline_res.get("processing_time_ms", 0.0)
+    v_type = pipeline_res.get("vehicle_type", "Car")
+    v_color = pipeline_res.get("vehicle_color", "White")
+    cam_id = pipeline_res.get("camera_id", "CAM-01")
+    direction = pipeline_res.get("direction", "ENTRY")
+    ai_eng = pipeline_res.get("ai_engine", "Local YOLO + OCR Engine")
 
     if not pipeline_res["success"] or not plate:
         return RecognitionResult(
             success=False,
             plate_number=None,
             confidence=0.0,
+            vehicle_type=v_type,
+            vehicle_color=v_color,
+            camera_id=cam_id,
+            direction=direction,
+            ai_engine=ai_eng,
             status="NOT_DETECTED",
             gate_action="DENIED",
             image_url=annotated_url,
@@ -47,7 +57,6 @@ def _evaluate_access_and_log(db: Session, pipeline_res: dict, source: str) -> Re
     gate_action = "DENIED"
     owner_name = None
     vehicle_model = None
-    notes = None
 
     if vehicle:
         owner_name = vehicle.owner_name
@@ -71,7 +80,6 @@ def _evaluate_access_and_log(db: Session, pipeline_res: dict, source: str) -> Re
     from backend.app.services.vehicle_lookup_service import VehicleLookupService
     vehicle_dossier = VehicleLookupService.get_vehicle_dossier(plate)
     
-    # If vehicle exists in local registry, override owner/model if specified
     if vehicle and vehicle.owner_name:
         owner_name = vehicle.owner_name
         vehicle_model = vehicle.vehicle_model or vehicle_dossier.get("rc_details", {}).get("vehicle_model")
@@ -87,6 +95,10 @@ def _evaluate_access_and_log(db: Session, pipeline_res: dict, source: str) -> Re
         gate_action=gate_action,
         image_path=annotated_url,
         source=source,
+        camera_id=cam_id,
+        direction=direction,
+        vehicle_type=v_type,
+        vehicle_color=v_color,
         notes=f"Owner: {owner_name or 'Unregistered'} | Vehicle: {vehicle_model or 'N/A'}"
     )
     db.add(log_entry)
@@ -103,6 +115,11 @@ def _evaluate_access_and_log(db: Session, pipeline_res: dict, source: str) -> Re
         success=True,
         plate_number=plate,
         confidence=conf,
+        vehicle_type=v_type,
+        vehicle_color=v_color,
+        camera_id=cam_id,
+        direction=direction,
+        ai_engine=ai_eng,
         status=status,
         gate_action=gate_action,
         owner_name=owner_name,
@@ -114,6 +131,7 @@ def _evaluate_access_and_log(db: Session, pipeline_res: dict, source: str) -> Re
         vehicle_dossier=vehicle_dossier,
         message=message
     )
+
 
 
 

@@ -9,10 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupFileUpload();
     setupWebcam();
     setupDirectSearch();
+    setupApiModal();
     loadSamplePresets();
 
-    // Load initial default dossier for demo
-    fetchVehicleDetails('MH12DE1433');
+    // Default initial demonstration vehicle (PB10AB1234)
+    fetchVehicleDetails('PB10AB1234');
 });
 
 // --- Tab Mode Switcher ---
@@ -46,7 +47,6 @@ function setupInputModeTabs() {
 function setupDirectSearch() {
     const input = document.getElementById('directPlateInput');
     const btnSearch = document.getElementById('btnDirectSearch');
-    const btnQuick = document.getElementById('btnQuickSample');
 
     const handleSearch = () => {
         const plate = input.value.trim().toUpperCase();
@@ -59,12 +59,38 @@ function setupDirectSearch() {
     input?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') handleSearch();
     });
+}
 
-    btnQuick?.addEventListener('click', () => {
-        const samples = ['MH12DE1433', 'DL01AB1234', 'KA05MJ9876', 'HR26DK8392', 'UP16AB9999', 'TN09AZ4321'];
-        const randomPlate = samples[Math.floor(Math.random() * samples.length)];
-        input.value = randomPlate;
-        fetchVehicleDetails(randomPlate);
+// --- API Key Modal Settings ---
+function setupApiModal() {
+    const modal = document.getElementById('apiModal');
+    const btnOpen = document.getElementById('btnOpenApiModal');
+    const btnClose = document.getElementById('btnCloseApiModal');
+    const btnCancel = document.getElementById('btnCancelApiModal');
+    const form = document.getElementById('apiSettingsForm');
+
+    btnOpen?.addEventListener('click', () => modal.classList.remove('hidden'));
+    btnClose?.addEventListener('click', () => modal.classList.add('hidden'));
+    btnCancel?.addEventListener('click', () => modal.classList.add('hidden'));
+
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const rekorKey = document.getElementById('inputRekorKey').value;
+        const rapidKey = document.getElementById('inputRapidApiKey').value;
+
+        try {
+            const res = await fetch('/api/vehicle/settings/apikey', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rekor_api_key: rekorKey, rapidapi_key: rapidKey })
+            });
+            if (res.ok) {
+                alert("API Gateway settings updated!");
+                modal.classList.add('hidden');
+            }
+        } catch (err) {
+            alert("Error saving API keys: " + err.message);
+        }
     });
 }
 
@@ -101,11 +127,14 @@ function setupFileUpload() {
 
 async function uploadAndRecognize(file) {
     if (isScanning) return;
-    setScanningStatus(true, "Scanning plate from image...");
+    setScanningStatus(true, "AI Processing: YOLO Detection + OCR...");
+
+    const camSelect = document.getElementById('cameraSelector');
+    const camId = camSelect ? camSelect.value : 'CAM-01';
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('source', 'FILE_UPLOAD');
+    formData.append('source', camId);
 
     try {
         const res = await fetch('/api/recognize/upload', {
@@ -157,7 +186,10 @@ function setupWebcam() {
 
     btnCapture?.addEventListener('click', async () => {
         if (!isWebcamRunning || isScanning) return;
-        setScanningStatus(true, "Capturing and recognizing plate...");
+        setScanningStatus(true, "Capturing frame & extracting plate...");
+
+        const camSelect = document.getElementById('cameraSelector');
+        const camId = camSelect ? camSelect.value : 'CAM-01';
 
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth || 640;
@@ -170,7 +202,7 @@ function setupWebcam() {
             const res = await fetch('/api/recognize/frame', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image_base64: base64Img, source: 'LIVE_WEBCAM' })
+                body: JSON.stringify({ image_base64: base64Img, source: camId })
             });
             const data = await res.json();
             handleRecognitionResponse(data);
@@ -195,7 +227,7 @@ async function loadSamplePresets() {
                 btn.className = 'p-2.5 bg-slate-50 hover:bg-brand-50 border border-slate-200 hover:border-brand-300 rounded-xl text-left transition';
                 btn.innerHTML = `
                     <span class="text-xs font-bold text-slate-800 block">${s.name}</span>
-                    <span class="text-[10px] text-brand-600 font-semibold block mt-0.5">Click to scan & check</span>
+                    <span class="text-[10px] text-brand-600 font-semibold block mt-0.5">Click to scan</span>
                 `;
                 btn.onclick = () => triggerSampleScan(s.filename);
                 grid.appendChild(btn);
@@ -207,7 +239,7 @@ async function loadSamplePresets() {
 }
 
 async function triggerSampleScan(filename) {
-    setScanningStatus(true, "Analyzing sample vehicle...");
+    setScanningStatus(true, "AI Model analyzing vehicle plate...");
     try {
         const res = await fetch(`/api/simulator/trigger?sample_filename=${encodeURIComponent(filename)}`, {
             method: 'POST'
@@ -225,14 +257,19 @@ function handleRecognitionResponse(data) {
 
     const plateText = document.getElementById('detectedPlateText');
     const conf = document.getElementById('detectedConfidence');
-    const checkIcon = document.getElementById('detectedCheckIcon');
     const cropContainer = document.getElementById('cropPreviewContainer');
     const cropImg = document.getElementById('cropPreviewImg');
 
     if (data.success && data.plate_number) {
         plateText.textContent = data.plate_number;
-        conf.textContent = `${Math.round(data.confidence * 100)}% Confidence`;
-        checkIcon?.classList.remove('hidden');
+        conf.textContent = `${Math.round(data.confidence * 100)}% Match`;
+
+        // Update AI metadata HUD
+        document.getElementById('detVehicleType').textContent = data.vehicle_type || "Car";
+        document.getElementById('detVehicleColor').textContent = data.vehicle_color || "White";
+        document.getElementById('detCameraDir').textContent = `${data.camera_id || 'CAM-01'} / ${data.direction || 'ENTRY'}`;
+        document.getElementById('detAiEngine').textContent = `AI: ${data.ai_engine || 'Local YOLO + OCR'}`;
+        document.getElementById('detLatency').textContent = `${data.processing_time_ms} ms`;
 
         if (data.plate_crop_url) {
             cropImg.src = data.plate_crop_url;
@@ -248,7 +285,6 @@ function handleRecognitionResponse(data) {
     } else {
         plateText.textContent = "NOT DETECTED";
         conf.textContent = "0%";
-        checkIcon?.classList.add('hidden');
     }
 }
 
@@ -260,9 +296,10 @@ async function fetchVehicleDetails(plateNumber) {
             const data = await res.json();
             renderVehicleDossier(data);
             
-            // Also sync search input
             const input = document.getElementById('directPlateInput');
             if (input) input.value = plateNumber;
+            const plateDisplay = document.getElementById('detectedPlateText');
+            if (plateDisplay) plateDisplay.textContent = plateNumber;
         }
     } catch (err) {
         console.error("Failed to fetch vehicle details:", err);
@@ -281,7 +318,19 @@ function renderVehicleDossier(dossier) {
     document.getElementById('dossierVehicleModel').textContent = rc.vehicle_model || rc.vehicle_make || "Vehicle Model";
     document.getElementById('dossierRtoName').textContent = rc.registration_authority || "Regional Transport Office";
 
-    // Insurance & PUC Badges
+    // Source Tag
+    const sourceTag = document.getElementById('dossierSourceTag');
+    if (sourceTag) {
+        if (dossier.is_live_api) {
+            sourceTag.className = "px-2.5 py-0.5 text-[10px] font-bold rounded bg-emerald-100 text-emerald-800 border border-emerald-300";
+            sourceTag.textContent = "🟢 Live RTO Gateway";
+        } else {
+            sourceTag.className = "px-2.5 py-0.5 text-[10px] font-semibold rounded bg-slate-100 text-slate-600 border border-slate-200";
+            sourceTag.textContent = "Parivahan RTO Service";
+        }
+    }
+
+    // Insurance Badge
     const insBadge = document.getElementById('dossierInsuranceBadge');
     if (rc.insurance_details && rc.insurance_details.status === "Valid") {
         insBadge.className = "px-3 py-1 text-xs font-bold rounded-full acko-badge-green flex items-center gap-1";
@@ -290,8 +339,6 @@ function renderVehicleDossier(dossier) {
         insBadge.className = "px-3 py-1 text-xs font-bold rounded-full acko-badge-red flex items-center gap-1";
         insBadge.innerHTML = `<i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> Insurance Expired`;
     }
-
-    document.getElementById('dossierPucBadge').textContent = `PUC: ${rc.puc_details?.status || 'Active'}`;
 
     // Specs Badges
     document.getElementById('specFuel').textContent = rc.fuel_type || "Petrol";

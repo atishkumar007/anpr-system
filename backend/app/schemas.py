@@ -31,6 +31,11 @@ class RecognitionResult(BaseModel):
     success: bool
     plate_number: Optional[str] = None
     confidence: float = 0.0
+    vehicle_type: Optional[str] = "Car"
+    vehicle_color: Optional[str] = "White"
+    camera_id: Optional[str] = "CAM-01"
+    direction: Optional[str] = "ENTRY"
+    ai_engine: Optional[str] = "Local YOLO + OCR Engine"
     status: str = "UNAUTHORIZED"  # AUTHORIZED, UNAUTHORIZED, BLACKLISTED, NOT_DETECTED
     gate_action: str = "DENIED"   # OPENED, DENIED
     owner_name: Optional[str] = None
@@ -52,7 +57,12 @@ class AccessLogOut(BaseModel):
     gate_action: str
     image_path: Optional[str]
     source: str
+    camera_id: Optional[str] = "CAM-01"
+    direction: Optional[str] = "ENTRY"
+    vehicle_type: Optional[str] = "Car"
+    vehicle_color: Optional[str] = "White"
     notes: Optional[str]
+
 
     class Config:
         from_attributes = True

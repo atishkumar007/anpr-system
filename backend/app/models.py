@@ -25,7 +25,12 @@ class AccessLog(Base):
     gate_action = Column(String(32), default="DENIED")   # OPENED, DENIED, MANUAL_OVERRIDE
     image_path = Column(String(256), nullable=True)
     source = Column(String(64), default="WEBCAM")        # WEBCAM, VIRTUAL_CAMERA, UPLOAD, SIMULATOR
+    camera_id = Column(String(64), default="CAM-01")
+    direction = Column(String(32), default="ENTRY")      # ENTRY, EXIT
+    vehicle_type = Column(String(64), default="Car")
+    vehicle_color = Column(String(64), default="White")
     notes = Column(Text, nullable=True)
+
 
 class SystemMetric(Base):
     __tablename__ = "system_metrics"

@@ -216,8 +216,9 @@ class VehicleLookupService:
                 "registration_date": reg_date,
                 "registration_authority": state_info[1],
                 "state": state_info[0],
-                "chassis_number": f"{chassis_no[:4]}••••••••{chassis_no[-4:]}",
-                "engine_number": f"{engine_no[:3]}••••{engine_no[-3:]}",
+                "chassis_number": f"{chassis_no[:4]}****{chassis_no[-4:]}",
+                "engine_number": f"{engine_no[:3]}****{engine_no[-3:]}",
+
                 "fitness_validity": f"Valid up to {reg_year + 15}",
                 "insurance_details": {
                     "provider": insurer,

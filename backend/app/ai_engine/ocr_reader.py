@@ -122,19 +122,29 @@ class OCRReader:
         if text.startswith("IND") and len(text) > 7:
             text = text[3:]
 
-        if 7 <= len(text) <= 12:
+        if 8 <= len(text) <= 12:
             text_chars = list(text)
             subs_to_letter = {'0': 'O', '1': 'I', '2': 'Z', '5': 'S', '8': 'B'}
             subs_to_digit = {'O': '0', 'Q': '0', 'D': '0', 'I': '1', 'L': '1', 'Z': '2', 'S': '5', 'B': '8'}
 
-            for i in range(min(2, len(text_chars))):
-                if text_chars[i] in subs_to_letter:
-                    text_chars[i] = subs_to_letter[text_chars[i]]
+            # Position 0 and 1: State code must be letters (e.g. DL, MH, PB, KA, HR, UP, TN)
+            if len(text_chars) >= 2:
+                for i in (0, 1):
+                    if text_chars[i] in subs_to_letter:
+                        text_chars[i] = subs_to_letter[text_chars[i]]
 
-            for i in range(max(0, len(text_chars) - 4), len(text_chars)):
+            # Position 2 and 3: District code must be digits (e.g. 01, 05, 10, 12, 26, 32)
+            if len(text_chars) >= 4:
+                for i in (2, 3):
+                    if text_chars[i] in subs_to_digit:
+                        text_chars[i] = subs_to_digit[text_chars[i]]
+
+            # Last 4 characters: Serial number must be digits (e.g. 1234, 1433, 9876)
+            for i in range(max(4, len(text_chars) - 4), len(text_chars)):
                 if text_chars[i] in subs_to_digit:
                     text_chars[i] = subs_to_digit[text_chars[i]]
 
             text = "".join(text_chars)
 
         return text
+

@@ -4,7 +4,8 @@ let isWebcamRunning = false;
 let isScanning = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    lucide.createIcons();
+    if (window.lucide) window.lucide.createIcons();
+
     setupInputModeTabs();
     setupFileUpload();
     setupWebcam();
@@ -167,7 +168,8 @@ function setupWebcam() {
                 btnCapture.disabled = false;
                 btnToggle.innerHTML = `<i data-lucide="video-off" class="w-3.5 h-3.5"></i> Stop Camera`;
                 isWebcamRunning = true;
-                lucide.createIcons();
+                if (window.lucide) window.lucide.createIcons();
+
             } catch (err) {
                 alert("Could not access camera. Please check permissions.");
             }
@@ -180,7 +182,8 @@ function setupWebcam() {
             btnCapture.disabled = true;
             btnToggle.innerHTML = `<i data-lucide="video" class="w-3.5 h-3.5"></i> Start Camera`;
             isWebcamRunning = false;
-            lucide.createIcons();
+            if (window.lucide) window.lucide.createIcons();
+
         }
     });
 
@@ -392,7 +395,8 @@ function renderVehicleDossier(dossier) {
         noChallanBox?.classList.remove('hidden');
     }
 
-    lucide.createIcons();
+    if (window.lucide) window.lucide.createIcons();
+
 }
 
 // --- Helpers ---

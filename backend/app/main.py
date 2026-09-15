@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, FileResponse
 from backend.app.config import STATIC_DIR, UPLOADS_DIR, SAMPLES_DIR, BASE_DIR, APP_TITLE, APP_VERSION
 from backend.app.database import engine, Base, SessionLocal
 from backend.app.models import VehicleRegistry
-from backend.app.routers import recognition, vehicles, logs, simulator
+from backend.app.routers import recognition, vehicles, logs, simulator, vehicle_lookup
 
 # Initialize database schema
 try:
@@ -36,6 +36,8 @@ app.include_router(recognition.router)
 app.include_router(vehicles.router)
 app.include_router(logs.router)
 app.include_router(simulator.router)
+app.include_router(vehicle_lookup.router)
+
 
 def get_frontend_file(rel_path: str) -> str:
     """Helper to locate and read frontend files across local and serverless environments."""

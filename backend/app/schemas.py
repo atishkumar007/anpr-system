@@ -39,7 +39,9 @@ class RecognitionResult(BaseModel):
     plate_crop_url: Optional[str] = None
     processing_time_ms: float = 0.0
     bounding_box: Optional[List[int]] = None  # [x, y, w, h]
+    vehicle_dossier: Optional[dict] = None
     message: str = ""
+
 
 class AccessLogOut(BaseModel):
     id: int

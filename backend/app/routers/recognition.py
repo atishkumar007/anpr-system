@@ -67,6 +67,18 @@ def _evaluate_access_and_log(db: Session, pipeline_res: dict, source: str) -> Re
         status = "UNAUTHORIZED"
         gate_action = "DENIED"
 
+    # Fetch full vehicle RC & Challan dossier
+    from backend.app.services.vehicle_lookup_service import VehicleLookupService
+    vehicle_dossier = VehicleLookupService.get_vehicle_dossier(plate)
+    
+    # If vehicle exists in local registry, override owner/model if specified
+    if vehicle and vehicle.owner_name:
+        owner_name = vehicle.owner_name
+        vehicle_model = vehicle.vehicle_model or vehicle_dossier.get("rc_details", {}).get("vehicle_model")
+    elif vehicle_dossier and vehicle_dossier.get("rc_details"):
+        owner_name = vehicle_dossier["rc_details"].get("owner_name")
+        vehicle_model = vehicle_dossier["rc_details"].get("vehicle_model")
+
     # Create Access Log record
     log_entry = AccessLog(
         plate_number=plate,
@@ -99,8 +111,10 @@ def _evaluate_access_and_log(db: Session, pipeline_res: dict, source: str) -> Re
         plate_crop_url=crop_url,
         processing_time_ms=proc_time,
         bounding_box=box,
+        vehicle_dossier=vehicle_dossier,
         message=message
     )
+
 
 
 @router.post("/upload", response_model=RecognitionResult)

@@ -1,69 +1,98 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
 
 :root {
-    --primary: #3b82f6;
-    --primary-glow: rgba(59, 130, 246, 0.35);
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
+    --acko-purple: #5B2BE6;
+    --acko-purple-hover: #481ED0;
+    --acko-purple-light: #F3EEFF;
+    --acko-purple-border: #D8C7FF;
+    --acko-dark: #111827;
+    --acko-slate: #4B5563;
+    --acko-bg: #F8F9FD;
+    --acko-card-bg: #FFFFFF;
+    --acko-border: #E5E7EB;
+    --acko-green: #059669;
+    --acko-green-bg: #ECFDF5;
+    --acko-red: #DC2626;
+    --acko-red-bg: #FEF2F2;
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--acko-bg);
+    color: var(--acko-dark);
 }
 
 .font-mono-plate {
     font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
 }
 
-/* Custom Scrollbar */
+/* Crisp Clean Card */
+.acko-card {
+    background-color: #FFFFFF;
+    border: 1px solid var(--acko-border);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+
+.acko-btn-primary {
+    background-color: var(--acko-purple);
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.acko-btn-primary:hover {
+    background-color: var(--acko-purple-hover);
+}
+
+.acko-btn-outline {
+    background-color: #FFFFFF;
+    color: var(--acko-dark);
+    border: 1px solid var(--acko-border);
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.15s ease-in-out;
+}
+
+.acko-btn-outline:hover {
+    border-color: var(--acko-purple);
+    color: var(--acko-purple);
+    background-color: var(--acko-purple-light);
+}
+
+/* Clean Pill Badge */
+.acko-badge-purple {
+    background-color: var(--acko-purple-light);
+    color: var(--acko-purple);
+    border: 1px solid var(--acko-purple-border);
+}
+
+.acko-badge-green {
+    background-color: var(--acko-green-bg);
+    color: var(--acko-green);
+    border: 1px solid #A7F3D0;
+}
+
+.acko-badge-red {
+    background-color: var(--acko-red-bg);
+    color: var(--acko-red);
+    border: 1px solid #FECACA;
+}
+
+/* Custom Clean Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 ::-webkit-scrollbar-track {
-    background: #0f172a;
+    background: #F3F4F6;
 }
 ::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 4px;
+    background: #D1D5DB;
+    border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #475569;
-}
-
-/* Glassmorphism Card */
-.glass-panel {
-    background: rgba(30, 41, 59, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.glass-panel-glow {
-    background: rgba(30, 41, 59, 0.75);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-/* Radar Scan Animation */
-@keyframes scanline {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(1000%); }
-}
-
-.scanline-effect {
-    animation: scanline 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-/* Smart Gate Barrier Indicator Animation */
-.barrier-arm {
-    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform-origin: left center;
-}
-
-.barrier-arm.open {
-    transform: rotate(-65deg);
+    background: #9CA3AF;
 }

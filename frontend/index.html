@@ -1,452 +1,295 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Number Plate Recognition & IoT Vision System</title>
+    <title>AutoPlate AI - Vehicle RC & Challan Verification</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        slate: { 850: '#151f32', 900: '#0f172a', 950: '#020617' }
+                        brand: {
+                            50: '#F3EEFF',
+                            100: '#E6D7FF',
+                            200: '#D0B5FF',
+                            500: '#5B2BE6',
+                            600: '#481ED0',
+                            700: '#3814AE',
+                            900: '#1F086C'
+                        }
                     }
                 }
             }
         }
     </script>
-    <!-- Lucide Icons & Chart.js -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+<body class="bg-[#F8F9FD] text-slate-900 min-h-screen flex flex-col antialiased">
 
-    <!-- Top Navigation Bar -->
-    <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <!-- Top Navigation Header (Acko Style) -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            
             <!-- Brand Logo -->
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
-                    <i data-lucide="scan" class="w-5 h-5 text-white"></i>
+            <div class="flex items-center gap-3 shrink-0">
+                <div class="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center text-white shadow-sm">
+                    <i data-lucide="car" class="w-5 h-5"></i>
                 </div>
                 <div>
-                    <h1 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
-                        AutoPlate AI <span class="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 font-mono border border-blue-500/30">v2.0 Vision</span>
+                    <h1 class="text-base font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+                        AutoPlate <span class="text-brand-500 font-extrabold">AI</span>
                     </h1>
-                    <p class="text-xs text-slate-400">AI Number Plate Recognition & IoT Smart Barrier</p>
+                    <p class="text-xs text-slate-500">Vehicle RC & E-Challan Verification</p>
                 </div>
             </div>
 
-            <!-- System Status Chips -->
-            <div class="hidden md:flex items-center gap-4">
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-slate-300 font-medium">AI Engine: <strong class="text-emerald-400">Online</strong></span>
+            <!-- Fast Search Bar -->
+            <div class="flex-1 max-w-md hidden sm:flex items-center gap-2">
+                <div class="relative w-full">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+                    <input type="text" id="directPlateInput" placeholder="Enter Vehicle No. (e.g. MH12DE1433)" class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-semibold uppercase text-slate-900 focus:outline-none focus:border-brand-500 focus:bg-white transition-all">
                 </div>
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs">
-                    <span id="barrierStatusLed" class="w-2 h-2 rounded-full bg-red-500"></span>
-                    <span id="barrierStatusText" class="text-slate-300 font-medium">BARRIER CLOSED</span>
-                </div>
+                <button id="btnDirectSearch" class="px-4 py-2 acko-btn-primary text-xs shrink-0 flex items-center gap-1.5 shadow-sm">
+                    <span>Search</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </button>
             </div>
-        </div>
 
-        <!-- Navigation Tabs -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 border-t border-slate-800/50">
-            <button data-tab-target="monitor" class="px-4 py-2.5 text-sm font-semibold border-b-2 bg-blue-600/20 text-blue-400 border-blue-500 flex items-center gap-2 transition-all">
-                <i data-lucide="video" class="w-4 h-4"></i> Live Scanner & IoT Feed
-            </button>
-            <button data-tab-target="vehicles" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-all">
-                <i data-lucide="shield-check" class="w-4 h-4"></i> Whitelist & Access Control
-            </button>
-            <button data-tab-target="analytics" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-all">
-                <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics & Traffic
-            </button>
-            <button data-tab-target="logs" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-2 transition-all">
-                <i data-lucide="history" class="w-4 h-4"></i> Access Logs
-            </button>
+            <!-- Quick Action Links -->
+            <div class="flex items-center gap-2">
+                <button id="btnQuickSample" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-brand-50 text-brand-600 border border-brand-200 hover:bg-brand-100 transition flex items-center gap-1">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Try Sample Car
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- Main Container -->
+    <!-- Main Content Area -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- Top Metric Counters -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-            <div class="glass-panel p-4 rounded-xl">
-                <p class="text-xs text-slate-400 font-medium">Total Scans</p>
-                <p id="statTotalScans" class="text-2xl font-black text-slate-100 mt-1">0</p>
-            </div>
-            <div class="glass-panel p-4 rounded-xl">
-                <p class="text-xs text-slate-400 font-medium">Today's Scans</p>
-                <p id="statTodayScans" class="text-2xl font-black text-blue-400 mt-1">0</p>
-            </div>
-            <div class="glass-panel p-4 rounded-xl">
-                <p class="text-xs text-slate-400 font-medium">Authorized Entries</p>
-                <p id="statAuthorized" class="text-2xl font-black text-emerald-400 mt-1">0</p>
-            </div>
-            <div class="glass-panel p-4 rounded-xl">
-                <p class="text-xs text-slate-400 font-medium">Blocked / Alerts</p>
-                <p id="statUnauthorized" class="text-2xl font-black text-red-400 mt-1">0</p>
-            </div>
-            <div class="glass-panel p-4 rounded-xl col-span-2 sm:col-span-1">
-                <p class="text-xs text-slate-400 font-medium">Registered Vehicles</p>
-                <p id="statRegistered" class="text-2xl font-black text-purple-400 mt-1">0</p>
-            </div>
-        </div>
+            <!-- LEFT COLUMN: Number Plate Scanner -->
+            <div class="lg:col-span-5 space-y-5">
 
-        <!-- TAB 1: LIVE MONITOR & SCANNER -->
-        <div id="tab-monitor" data-tab-content class="space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                <!-- Left Column: Input Feeds (Webcam, Virtual IoT Simulator, Upload) -->
-                <div class="lg:col-span-7 space-y-6">
-
-                    <!-- Camera & Webcam Stream Panel -->
-                    <div class="glass-panel rounded-2xl p-5 border border-slate-800 relative overflow-hidden">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="camera" class="w-5 h-5 text-blue-400"></i>
-                                <h3 class="font-bold text-slate-100">Live Camera Ingestion</h3>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button id="btnStartWebcam" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1.5 transition">
-                                    <i data-lucide="play" class="w-3.5 h-3.5"></i> Start PC Webcam
-                                </button>
-                                <button id="btnStopWebcam" class="hidden px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center gap-1.5 transition">
-                                    <i data-lucide="square" class="w-3.5 h-3.5"></i> Stop
-                                </button>
-                                <button id="btnScanWebcamFrame" class="hidden px-3.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 transition">
-                                    <i data-lucide="scan-line" class="w-3.5 h-3.5"></i> Capture & Scan
-                                </button>
-                            </div>
+                <div class="acko-card p-5 space-y-4">
+                    
+                    <!-- Scanner Header -->
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="scan" class="w-4 h-4 text-brand-500"></i>
+                            <h2 class="text-sm font-bold text-slate-900">Number Plate Scanner</h2>
                         </div>
+                        <span id="scanStatusBadge" class="px-2.5 py-0.5 text-[11px] font-semibold rounded-full acko-badge-purple">
+                            Ready to Scan
+                        </span>
+                    </div>
 
-                        <!-- Video Viewport -->
-                        <div class="relative w-full aspect-video bg-slate-900 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
-                            <!-- Scanning Overlay Indicator -->
-                            <div id="scanningIndicator" class="hidden absolute inset-0 bg-blue-950/40 z-20 flex items-center justify-center backdrop-blur-xs">
-                                <div class="w-full h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent scanline-effect absolute"></div>
-                                <div class="px-4 py-2 rounded-lg bg-slate-900/90 border border-blue-500 text-blue-400 text-xs font-bold flex items-center gap-2 shadow-2xl">
-                                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Processing Frame & Running OCR...
-                                </div>
+                    <!-- Input Modes Selector -->
+                    <div class="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold text-slate-600">
+                        <button id="tabUpload" class="py-1.5 px-2 rounded-lg bg-white text-brand-600 shadow-xs flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload
+                        </button>
+                        <button id="tabWebcam" class="py-1.5 px-2 rounded-lg hover:text-slate-900 flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="camera" class="w-3.5 h-3.5"></i> Camera
+                        </button>
+                        <button id="tabSamples" class="py-1.5 px-2 rounded-lg hover:text-slate-900 flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="layers" class="w-3.5 h-3.5"></i> Samples
+                        </button>
+                    </div>
+
+                    <!-- Viewport 1: File Upload / Drag & Drop -->
+                    <div id="viewUpload" class="space-y-3">
+                        <div id="dropzone" class="border-2 border-dashed border-slate-200 hover:border-brand-500 rounded-xl p-6 text-center cursor-pointer bg-slate-50/50 transition">
+                            <input type="file" id="fileInput" accept="image/*" class="hidden">
+                            <div class="w-12 h-12 mx-auto rounded-full bg-brand-50 flex items-center justify-center text-brand-500 mb-2">
+                                <i data-lucide="image-plus" class="w-6 h-6"></i>
                             </div>
+                            <p class="text-xs font-semibold text-slate-800">Click to upload or drag vehicle photo</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">Supports JPG, PNG, WEBP (High Resolution)</p>
+                        </div>
+                    </div>
 
+                    <!-- Viewport 2: Live Webcam -->
+                    <div id="viewWebcam" class="hidden space-y-3">
+                        <div class="relative aspect-video bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center">
                             <video id="webcamVideo" autoplay playsinline class="hidden w-full h-full object-cover"></video>
-
-                            <div id="webcamPlaceholder" class="text-center p-6 space-y-3">
-                                <div class="w-14 h-14 mx-auto rounded-full bg-slate-800/80 flex items-center justify-center text-slate-500">
-                                    <i data-lucide="camera-off" class="w-7 h-7"></i>
-                                </div>
-                                <p class="text-sm font-medium text-slate-400">Live Camera Inactive</p>
-                                <p class="text-xs text-slate-500 max-w-sm">Use your PC/Laptop webcam, trigger the virtual IoT simulator below, or drop an image file.</p>
+                            <div id="webcamPrompt" class="text-center p-4 space-y-2 text-white">
+                                <i data-lucide="camera-off" class="w-8 h-8 mx-auto text-slate-400"></i>
+                                <p class="text-xs text-slate-300">Webcam is currently inactive</p>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Virtual IoT Camera Simulator Box -->
-                    <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="cpu" class="w-5 h-5 text-purple-400"></i>
-                                <h3 class="font-bold text-slate-100">Virtual IoT Camera Simulator</h3>
-                            </div>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="autoSimToggle" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
-                                <span class="text-xs font-semibold text-slate-300">Continuous Feed</span>
-                            </label>
-                        </div>
-
-                        <p class="text-xs text-slate-400">Test the complete ANPR pipeline with synthetic vehicle stream without needing physical hardware.</p>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                            <button id="btnSimulateRandom" class="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-lg shadow-purple-600/25 transition">
-                                <i data-lucide="sparkles" class="w-4 h-4"></i> Simulate Random Vehicle
+                        <div class="flex gap-2">
+                            <button id="btnToggleWebcam" class="flex-1 py-2 acko-btn-outline text-xs flex items-center justify-center gap-1.5">
+                                <i data-lucide="video" class="w-3.5 h-3.5"></i> Start Camera
                             </button>
-                            <div class="flex gap-2">
-                                <select id="sampleVehicleSelect" class="flex-1 bg-slate-900 border border-slate-700 text-xs rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-purple-500">
-                                    <option value="">-- Select Test Sample --</option>
-                                </select>
-                                <button id="btnSimulateSelected" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition">
-                                    Test
-                                </button>
-                            </div>
+                            <button id="btnCaptureWebcam" disabled class="flex-1 py-2 acko-btn-primary text-xs flex items-center justify-center gap-1.5 disabled:opacity-50">
+                                <i data-lucide="scan-line" class="w-3.5 h-3.5"></i> Capture & Scan
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Drag & Drop Upload Zone -->
-                    <div id="dropzone" class="glass-panel rounded-2xl p-6 border-2 border-dashed border-slate-800 hover:border-blue-500/50 cursor-pointer text-center transition-all">
-                        <input type="file" id="fileInput" accept="image/*" class="hidden">
-                        <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-400 mx-auto mb-2"></i>
-                        <p class="text-xs font-semibold text-slate-200">Drag & Drop Vehicle Image or Click to Browse</p>
-                        <p class="text-[11px] text-slate-500 mt-1">Supports JPG, PNG, WEBP high-res photos</p>
+                    <!-- Viewport 3: Sample Preset Cars -->
+                    <div id="viewSamples" class="hidden space-y-3">
+                        <label class="block text-xs font-semibold text-slate-700">Choose a Demo Vehicle:</label>
+                        <div class="grid grid-cols-2 gap-2" id="samplePresetsGrid">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Scan Preview / Detection Result -->
+                    <div id="detectedPlateBox" class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-500 font-medium">Recognized Plate</span>
+                            <span id="detectedConfidence" class="font-semibold text-brand-600">--</span>
+                        </div>
+                        
+                        <!-- High-Contrast Plate Display -->
+                        <div class="bg-white border-2 border-slate-900 rounded-lg py-2 px-3 flex items-center justify-between shadow-xs">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-blue-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded flex flex-col items-center leading-none">
+                                    <span>IND</span>
+                                </div>
+                                <span id="detectedPlateText" class="font-mono-plate text-xl font-extrabold text-slate-900 tracking-wider">
+                                    SCAN A VEHICLE
+                                </span>
+                            </div>
+                            <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600 hidden" id="detectedCheckIcon"></i>
+                        </div>
+
+                        <!-- Cropped ROI Thumbnail -->
+                        <div id="cropPreviewContainer" class="hidden pt-1">
+                            <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1">OCR Crop Area</p>
+                            <img id="cropPreviewImg" src="" alt="Plate ROI" class="h-12 w-auto object-contain border border-slate-200 rounded bg-white p-1">
+                        </div>
                     </div>
 
                 </div>
 
-                <!-- Right Column: Recognition Result & Barrier Status -->
-                <div class="lg:col-span-5 space-y-6">
+            </div>
 
-                    <!-- Latest Detection Result Card -->
-                    <div id="latestResultCard" class="glass-panel-glow rounded-2xl p-6 border border-slate-700/60 space-y-5">
-                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                            <h3 class="font-bold text-slate-100 flex items-center gap-2">
-                                <i data-lucide="shield-alert" class="w-5 h-5 text-blue-400"></i> Recognition Event
-                            </h3>
+            <!-- RIGHT COLUMN: Vehicle Details & Challans Dossier -->
+            <div class="lg:col-span-7 space-y-5">
+
+                <!-- Vehicle Overview Card -->
+                <div class="acko-card p-6 space-y-6">
+                    
+                    <!-- Header with Plate & Make/Model -->
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-slate-100 pb-5">
+                        <div>
                             <div class="flex items-center gap-2">
-                                <span id="resStatusBadge" class="px-2.5 py-1 text-xs font-semibold rounded-md bg-slate-800 text-slate-400">WAITING</span>
-                                <span id="resGateBadge" class="px-2.5 py-1 text-xs font-semibold rounded-md bg-slate-800 text-slate-400">GATE IDLE</span>
+                                <h2 id="dossierPlateNumber" class="font-mono-plate text-2xl sm:text-3xl font-black text-slate-900 tracking-wide">
+                                    MH12DE1433
+                                </h2>
+                                <span id="dossierStateBadge" class="px-2.5 py-0.5 text-xs font-semibold rounded-full acko-badge-purple">
+                                    Maharashtra
+                                </span>
                             </div>
+                            <p id="dossierVehicleModel" class="text-base font-bold text-slate-700 mt-1">
+                                Toyota Fortuner 2.8 4x4 AT
+                            </p>
+                            <p id="dossierRtoName" class="text-xs text-slate-500 mt-0.5">
+                                MH-12 Pune Regional Transport Office
+                            </p>
                         </div>
 
-                        <!-- Big Extracted License Plate Badge -->
-                        <div class="bg-slate-900/90 border-2 border-slate-700 rounded-xl p-4 text-center shadow-inner relative">
-                            <span class="text-[10px] font-mono text-slate-500 uppercase tracking-widest absolute top-2 left-3">Detected Plate</span>
-                            <div id="resPlateNumber" class="font-mono-plate text-3xl font-extrabold text-slate-400 py-2 tracking-wider">
-                                SCANNING READY
-                            </div>
+                        <div class="flex flex-wrap sm:flex-col items-end gap-1.5 shrink-0">
+                            <span id="dossierInsuranceBadge" class="px-3 py-1 text-xs font-bold rounded-full acko-badge-green flex items-center gap-1">
+                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Insurance Active
+                            </span>
+                            <span id="dossierPucBadge" class="px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                                PUC: Active
+                            </span>
                         </div>
+                    </div>
 
-                        <!-- Detection Details Grid -->
-                        <div class="grid grid-cols-2 gap-3 text-xs">
-                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
-                                <span class="text-slate-400">OCR Confidence</span>
-                                <p id="resConfidence" class="text-base font-bold text-slate-100 mt-0.5">--</p>
-                            </div>
-                            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
-                                <span class="text-slate-400">Processing Latency</span>
-                                <p id="resLatency" class="text-base font-bold text-slate-100 mt-0.5">-- ms</p>
-                            </div>
-                            <div class="col-span-2 bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
-                                <span class="text-slate-400">Registered Owner & Vehicle</span>
-                                <p id="resOwner" class="text-sm font-semibold text-slate-200 mt-0.5">No recent scan</p>
-                            </div>
+                    <!-- Vehicle Specs Pill Badges -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 block text-[11px]">Fuel Type</span>
+                            <span id="specFuel" class="font-bold text-slate-800 mt-0.5 block">Diesel</span>
                         </div>
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 block text-[11px]">Vehicle Class</span>
+                            <span id="specClass" class="font-bold text-slate-800 mt-0.5 block">Four Wheeler (LMV)</span>
+                        </div>
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 block text-[11px]">Emission Standard</span>
+                            <span id="specEmission" class="font-bold text-slate-800 mt-0.5 block">BS6</span>
+                        </div>
+                        <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 block text-[11px]">Registration Date</span>
+                            <span id="specRegDate" class="font-bold text-slate-800 mt-0.5 block">14/05/2021</span>
+                        </div>
+                    </div>
 
-                        <!-- Annotated Snapshot & Crop Previews -->
-                        <div class="space-y-2">
-                            <span class="text-xs text-slate-400 font-medium">Vision Snapshot & Cropped ROI</span>
-                            <div class="grid grid-cols-3 gap-2">
-                                <div class="col-span-2 aspect-video bg-slate-900 rounded-lg overflow-hidden border border-slate-800">
-                                    <img id="resSnapshot" src="" alt="Annotated Capture" class="hidden w-full h-full object-cover">
-                                </div>
-                                <div class="col-span-1 aspect-video bg-slate-900 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center">
-                                    <img id="resPlateCrop" src="" alt="Cropped Plate" class="hidden w-full h-full object-contain p-1">
-                                </div>
+                    <!-- Owner & Policy Grid -->
+                    <div class="border border-slate-200 rounded-xl overflow-hidden text-xs">
+                        <div class="bg-slate-50 px-4 py-2.5 border-b border-slate-200 font-bold text-slate-700 flex items-center justify-between">
+                            <span>Owner & Registration Details</span>
+                            <span class="text-[11px] font-normal text-slate-500">Verified by Transport Dept</span>
+                        </div>
+                        <div class="divide-y divide-slate-100 bg-white">
+                            <div class="grid grid-cols-3 px-4 py-2.5">
+                                <span class="text-slate-500">Registered Owner</span>
+                                <span id="valOwnerName" class="col-span-2 font-semibold text-slate-900">Alex Johnson</span>
+                            </div>
+                            <div class="grid grid-cols-3 px-4 py-2.5">
+                                <span class="text-slate-500">Insurance Provider</span>
+                                <span id="valInsurer" class="col-span-2 font-semibold text-slate-900">Acko General Insurance Ltd</span>
+                            </div>
+                            <div class="grid grid-cols-3 px-4 py-2.5">
+                                <span class="text-slate-500">Policy & Expiry</span>
+                                <span id="valPolicyExpiry" class="col-span-2 font-mono text-slate-800">ACKO-POL-4921092 (Exp: 18/11/2026)</span>
+                            </div>
+                            <div class="grid grid-cols-3 px-4 py-2.5">
+                                <span class="text-slate-500">Chassis / Engine No</span>
+                                <span id="valChassisEngine" class="col-span-2 font-mono text-slate-600">MA3M••••1433 / ENG••••891</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Smart Barrier Gate Visual Simulator -->
-                    <div class="glass-panel rounded-2xl p-5 border border-slate-800 space-y-4">
+                    <!-- Traffic Challans & Violations Section -->
+                    <div class="space-y-3 pt-2">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
-                                <i data-lucide="lock" class="w-5 h-5 text-amber-400"></i>
-                                <h3 class="font-bold text-slate-100">Smart Barrier Gate Relay</h3>
+                                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i>
+                                <h3 class="font-bold text-slate-900 text-sm">Traffic E-Challans & Violations</h3>
                             </div>
-                            <div class="flex gap-1.5">
-                                <button id="btnGateOverrideOpen" class="px-2.5 py-1 text-xs font-semibold rounded bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/30 transition">
-                                    Manual Open
-                                </button>
-                                <button id="btnGateOverrideClose" class="px-2.5 py-1 text-xs font-semibold rounded bg-red-600/20 hover:bg-red-600/40 text-red-300 border border-red-500/30 transition">
-                                    Manual Close
-                                </button>
+                            <div class="flex items-center gap-2">
+                                <span id="challanCountBadge" class="px-2.5 py-0.5 text-xs font-bold rounded-full acko-badge-red">
+                                    0 Pending Challans
+                                </span>
                             </div>
                         </div>
 
-                        <!-- Gate Graphic -->
-                        <div class="relative h-28 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden px-8">
-                            <!-- Gate Pillar Post -->
-                            <div class="w-6 h-20 bg-gradient-to-b from-slate-600 to-slate-800 rounded-t-md shadow-md relative z-10">
-                                <div class="w-4 h-4 rounded-full bg-slate-950 mx-auto mt-2 border border-slate-700"></div>
-                            </div>
-                            <!-- Barrier Arm Striped -->
-                            <div id="barrierArmVisual" class="barrier-arm w-48 h-3.5 bg-[repeating-linear-gradient(45deg,#ef4444,#ef4444_10px,#ffffff_10px,#ffffff_20px)] rounded-r-md shadow-lg -ml-1"></div>
-                            <!-- Road Markings -->
-                            <div class="absolute bottom-2 w-full border-b-2 border-dashed border-yellow-500/40"></div>
+                        <!-- Challans List Container -->
+                        <div id="challansList" class="space-y-2.5">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+
+                        <!-- No Challans Placeholder -->
+                        <div id="noChallansPlaceholder" class="hidden border border-emerald-200 bg-emerald-50/50 rounded-xl p-4 text-center text-emerald-800 text-xs">
+                            <i data-lucide="check-circle-2" class="w-6 h-6 mx-auto text-emerald-600 mb-1"></i>
+                            <p class="font-bold">No Pending Traffic Challans!</p>
+                            <p class="text-emerald-700 text-[11px]">This vehicle has a clean traffic compliance record.</p>
                         </div>
                     </div>
 
                 </div>
 
             </div>
-        </div>
 
-        <!-- TAB 2: ACCESS CONTROL & VEHICLES REGISTRY -->
-        <div id="tab-vehicles" data-tab-content class="hidden space-y-6">
-            <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-100">Vehicle Access Registry</h2>
-                        <p class="text-xs text-slate-400 mt-1">Manage whitelisted VIPs, blacklisted alerts, and guest delivery access rules.</p>
-                    </div>
-                    <button id="btnOpenAddVehicle" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-600/25 transition">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Register New Vehicle
-                    </button>
-                </div>
-
-                <!-- Search & Filters -->
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <div class="flex-1 relative">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
-                        <input type="text" id="vehicleSearchInput" placeholder="Search by plate number, owner name, or vehicle model..." class="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
-                    </div>
-                    <select id="vehicleTierFilter" class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500">
-                        <option value="">All Access Tiers</option>
-                        <option value="WHITELIST">Whitelist (Permitted)</option>
-                        <option value="BLACKLIST">Blacklist (Blocked/Alert)</option>
-                        <option value="GUEST">Guest / Vendor</option>
-                    </select>
-                </div>
-
-                <!-- Vehicles Table -->
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
-                                <th class="py-3 px-4">Plate Number</th>
-                                <th class="py-3 px-4">Owner Name</th>
-                                <th class="py-3 px-4">Vehicle Model</th>
-                                <th class="py-3 px-4">Access Tier</th>
-                                <th class="py-3 px-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="vehiclesTableBody" class="divide-y divide-slate-800">
-                            <!-- Populated dynamically via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3: ANALYTICS & TRAFFIC INSIGHTS -->
-        <div id="tab-analytics" data-tab-content class="hidden space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Hourly Traffic Bar Chart -->
-                <div class="lg:col-span-8 glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
-                    <h3 class="font-bold text-slate-100 flex items-center gap-2">
-                        <i data-lucide="trending-up" class="w-5 h-5 text-blue-400"></i> Hourly Traffic & Access Volume
-                    </h3>
-                    <div class="h-72">
-                        <canvas id="trafficHourlyChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Access Status Doughnut -->
-                <div class="lg:col-span-4 glass-panel rounded-2xl p-6 border border-slate-800 space-y-4">
-                    <h3 class="font-bold text-slate-100 flex items-center gap-2">
-                        <i data-lucide="pie-chart" class="w-5 h-5 text-purple-400"></i> Access Distribution
-                    </h3>
-                    <div class="h-72 flex items-center justify-center">
-                        <canvas id="statusRatioChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 4: ACCESS LOGS & AUDIT -->
-        <div id="tab-logs" data-tab-content class="hidden space-y-6">
-            <div class="glass-panel rounded-2xl p-6 border border-slate-800 space-y-6">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-slate-100">Recognition & Access Audit Trail</h2>
-                        <p class="text-xs text-slate-400 mt-1">Complete timestamped history of all vehicle scans and gate decisions.</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <button id="btnExportLogs" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
-                            <i data-lucide="download" class="w-4 h-4"></i> Export CSV
-                        </button>
-                        <button id="btnClearLogs" class="px-3.5 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i> Clear
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Search & Filters -->
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <div class="flex-1 relative">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
-                        <input type="text" id="logSearchInput" placeholder="Filter by plate number..." class="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500">
-                    </div>
-                    <select id="logStatusFilter" class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-blue-500">
-                        <option value="">All Statuses</option>
-                        <option value="AUTHORIZED">Authorized Only</option>
-                        <option value="UNAUTHORIZED">Unauthorized Only</option>
-                        <option value="BLACKLISTED">Blacklisted Only</option>
-                    </select>
-                </div>
-
-                <!-- Logs Table -->
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
-                                <th class="py-3 px-4">Timestamp</th>
-                                <th class="py-3 px-4">Plate Number</th>
-                                <th class="py-3 px-4">Confidence</th>
-                                <th class="py-3 px-4">Access Status</th>
-                                <th class="py-3 px-4">Barrier Action</th>
-                                <th class="py-3 px-4">Details / Source</th>
-                            </tr>
-                        </thead>
-                        <tbody id="logsTableBody" class="divide-y divide-slate-800">
-                            <!-- Populated dynamically via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
 
     </main>
 
-    <!-- Modal: Register New Vehicle -->
-    <div id="vehicleModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="glass-panel-glow w-full max-w-md rounded-2xl p-6 border border-slate-700 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-slate-100">Register New Vehicle</h3>
-                <button id="btnCloseVehicleModal" class="text-slate-400 hover:text-slate-200">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            <form id="vehicleForm" class="space-y-4 text-xs">
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">License Plate Number *</label>
-                    <input type="text" id="inputPlate" required placeholder="e.g. MH12DE1433" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 uppercase font-mono tracking-wider focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Owner / Driver Name *</label>
-                    <input type="text" id="inputOwner" required placeholder="e.g. Jane Doe" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Vehicle Model & Color</label>
-                    <input type="text" id="inputModel" placeholder="e.g. Audi A4 (Silver)" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Access Permission Tier *</label>
-                    <select id="inputTier" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500">
-                        <option value="WHITELIST">WHITELIST (Automatic Barrier Open)</option>
-                        <option value="BLACKLIST">BLACKLIST (Denied & Security Alert)</option>
-                        <option value="GUEST">GUEST / VENDOR (Temporary Authorized)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Additional Notes</label>
-                    <textarea id="inputNotes" rows="2" placeholder="e.g. Parking spot #42" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-blue-500"></textarea>
-                </div>
-                <div class="pt-2 flex justify-end gap-2">
-                    <button type="button" onclick="document.getElementById('vehicleModal').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition">Cancel</button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition">Save Vehicle</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- Scripts -->
-    <script src="/static/js/charts.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 </html>
